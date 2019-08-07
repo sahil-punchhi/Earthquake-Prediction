@@ -1,5 +1,8 @@
-a = 5
-b = 4
-c = a+b
-print(c)
-hahaha
+class FeatureGenerator(object):
+  def __init__():
+    pass
+  
+  
+  def features(self):
+    # add your section here
+    pass
