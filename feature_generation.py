@@ -1,8 +1,1 @@
-class FeatureGenerator(object):
-  def __init__():
-    pass
-  
-  
-  def features(self):
-    # add your section here
-    pass
+# This is the final code do not work on this in the intial stages
