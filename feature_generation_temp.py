@@ -5,13 +5,11 @@
 # - classic_sta_lta   -> lta_sta_function
 # - calc_change_rate -> change_rate_calculation
 
-# kstat_    -> kstat
-# moment_   -> moment
-# kstatvar_ -> variable_k_stat
+# kstat_    -> k_static
+# moment_   -> moments
+# kstatvar_ -> variable_k_static
 
-# basic stats
-# basic stats on absolute values
-# geometric and harmonic means
+# get_features()
 
 #####################
 # COMPLETED
@@ -19,10 +17,10 @@
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from scipy import stats
 from collections import defaultdict
 
-
-# -----------------Aarushi -----------
+# ----------------- Aarushi -----------
 
 
 def trend_adding_feature(array, absolute=False):
@@ -42,7 +40,6 @@ def lta_sta_function(x, length_sta, length_lta):
     sta = np.cumsum(x_sq)
 
     # Convert to float
-
     lta = np.require(sta, dtype=np.float)
 
     # Copy for LTA
@@ -67,10 +64,6 @@ def lta_sta_function(x, length_sta, length_lta):
     return return_val
 
 
-def features():
-
-
-
 def change_rate_calculation(x):
     x_ = np.diff(x)
     change_val = (x_ / x[:-1])
@@ -83,16 +76,36 @@ def change_rate_calculation(x):
 # ----------- End of Code ----------------
 
 
-class FeatureGenerator(object):
-    def __init__(self):
-        pass
+def generate_features(x):
+    # collection of features
+    feature_collection={}
 
-    def features(self):
+    # collection of intervals
+    feature_intervals={
+        'k_static':list(range(0,5)),
+        'variable_k_stat':[1,2]
+    }
 
+    # add your section here
+
+    # -----------------Rishabh -----------
+
+    for interval in feature_intervals['kstat']:
+        feature_collection['k_static_{interval}']=stats.kstat(x,interval)
+
+    for interval in feature_intervals['moment']:
+        feature_collection['moments_{interval}']=stats.moment(x,interval)
+
+    for interval in feature_intervals['variable_k_stat']:
+        feature_collection['variable_k_static_{interval}']=stats.kstatvar(x,interval)
+
+    return feature_collection
+
+# ----------- End of Code ----------------
 
 
 if __name__ == '__main__':
-    array_new = np.array([12, 346, 5883, 25, 2, 9, 635, 24, 864, 2, 4664])
+    array_new = np.array([12,346,5883,25,2,9,635,24,864,2,4664])
     # print(trend_adding_feature(array_new))
     # print(lta_sta_function(array_new,2,3))
     print(change_rate_calculation(array_new))
