@@ -1,9 +1,7 @@
 # This is the temp file add your code here
 
 # CURRENTLY DOING
-# - add_trend_feature -> trend_adding_feature
-# - classic_sta_lta   -> lta_sta_function
-# - calc_change_rate -> change_rate_calculation
+# classic_sta_lta1_mean - lta_sta_mean_N
 
 # get_features()
 # features() -> generate_features()
@@ -17,6 +15,9 @@
 # skew -> skewness
 # mad -> mean_abs_dev
 # kurt -> kurtosis
+# - add_trend_feature -> trend_adding_feature
+# - classic_sta_lta   -> lta_sta_function
+# - calc_change_rate -> change_rate_calculation
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
