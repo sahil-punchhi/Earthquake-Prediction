@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from scipy import stats
-from collections import defaultdict
 from joblib import Parallel, delayed
 
 
@@ -95,19 +94,19 @@ def generate_features(x, y, seg_id):
     for interval in feature_intervals['k_static']:
         feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
 
-    feature_collection['mean_abs_dev'] = x.mad()
+    # feature_collection['mean_abs_dev'] = x.mad()
 
     for interval in feature_intervals['variable_k_stat']:
-        feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
+        feature_collection['variable_k_static_{interval}'] =     stats.kstatvar(x, interval)
 
-    feature_collection['kurtosis'] = x.kurtosis()
+    # feature_collection['kurtosis'] = x.kurtosis()
 
     for interval in feature_intervals['k_static']:
         feature_collection['moments_{interval}'] = stats.moment(x, interval)
 
-    feature_collection['median'] = x.median()
+    # feature_collection['median'] = x.median()
 
-    feature_collection['skewness'] = x.skew()
+    # feature_collection['skewness'] = x.skew()
 
     # ----------- End of Code ----------------
 
@@ -120,13 +119,11 @@ def generate_features(x, y, seg_id):
 def read_data_segments(file, dclass):
     if dclass == 'train':
         dtypes = {
-            'acoustic_data': np.int16,
+            'acoustic_data': np.float64,
             'time_to_failure': np.float64
         }
 
-        df = pd.read_csv(file, dtype=dtypes, iterator=True, chunksize=2000)
-
-        # segments = int(629145480 / 150000)
+        df = pd.read_csv(file, iterator=True, chunksize=150000, dtype=dtypes)
 
         for i, j in enumerate(df):
             x = j.acoustic_data.values
@@ -136,12 +133,12 @@ def read_data_segments(file, dclass):
             yield x, y, seg_id
     elif dclass == 'test':
         dtypes = {
-            'acoustic_data': np.int16
+            'acoustic_data': np.float64
         }
 
         for i, j in file:
-            dfx = pd.read_csv(j, dtype=dtypes, iterator=True, chunksize=2000)
-            x = j.acoustic_data.values
+            dfx = pd.read_csv(j, dtype=dtypes)
+            x = dfx.acoustic_data.values[-150000:]
             y = -999
             del dfx
             yield x, y, i
