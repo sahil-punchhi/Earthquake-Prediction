@@ -5,9 +5,9 @@
 # - classic_sta_lta   -> lta_sta_function
 # - calc_change_rate -> change_rate_calculation
 
-#kstat_    -> kstat
-#moment_   -> moment
-#kstatvar_ -> variable_k_stat
+# kstat_    -> k_static
+# moment_   -> moments
+# kstatvar_ -> variable_k_static
 
  #####################
 # COMPLETED
@@ -15,6 +15,7 @@
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from scipy import stats
 
 # -----------------Aarushi -----------
 
@@ -64,13 +65,36 @@ def change_rate_calculation(x):
   return return_val
 
   # ----------- End of Code ----------------
-class FeatureGenerator(object):
-  def __init__(self):
-    pass
-  
-  def features(self):
-    # add your section here
-    pass
+
+
+def generate_features(x):
+  # collection of features
+  feature_collection={}
+
+  # collection of intervals
+  feature_intervals={
+    'k_static':list(range(0,5)),
+    'variable_k_stat':[1,2]
+  }
+
+  # add your section here
+
+  # -----------------Rishabh -----------
+
+  for interval in feature_intervals['kstat']:
+    feature_collection['k_static_{interval}']=stats.kstat(x,interval)
+
+  for interval in feature_intervals['moment']:
+    feature_collection['moments_{interval}']=stats.moment(x,interval)
+
+  for interval in feature_intervals['variable_k_stat']:
+    feature_collection['variable_k_static_{interval}']=stats.kstatvar(x,interval)
+
+
+
+  # ----------- End of Code ----------------
+
+  return feature_collection
 
 array_new = np.array([12,346,5883,25,2,9,635,24,864,2,4664])
 #print(trend_adding_feature(array_new))
