@@ -1,10 +1,11 @@
 # This is the temp file add your code here
 
-# Currently Doing
+# CURRENTLY DOING
 # - add_trend_feature
+# - classic_sta_lta
 
  #####################
-# Completed
+# COMPLETED
 # -
 
 import numpy as np
