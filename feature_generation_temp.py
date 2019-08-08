@@ -23,6 +23,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy import stats
 from collections import defaultdict
+from tsfresh.feature_extraction import feature_calculators
 
 # ----------------- Aarushi -----------
 
@@ -87,7 +88,8 @@ def generate_features(x):
     # collection of intervals
     feature_intervals={
         'k_static':list(range(0,5)),
-        'variable_k_stat':[1,2]
+        'variable_k_stat':[1,2],
+        'auto_lags':[5, 10, 50, 100, 500, 1000, 5000, 10000]
     }
 
     # add your section here
@@ -110,6 +112,9 @@ def generate_features(x):
     feature_collection['median'] = x.median()
 
     feature_collection['skewness'] = x.skew()
+
+    for interval in feature_intervals['auto_lags']:
+      feature_collection['correlation_{interval}']=feature_calculators.autocorrelation(x, interval)
 
     # ----------- End of Code ----------------
 
