@@ -177,14 +177,14 @@ def get_features(x, y, seg_id):
 # -------------- END OF CODE ---------------
 
 if __name__ == '__main__':
-    file_path = ''
+    file_path = './'
 
     train_file = file_path + 'train.csv'
 
     test_files = []
     submission = pd.read_csv(file_path + 'sample_submission.csv')
     for seg_id in submission.seg_id.values:
-        test_files.append((seg_id, file_path + 'test\\' + seg_id + '.csv'))
+        test_files.append((seg_id, file_path + 'test/' + seg_id + '.csv'))
 
     get_data(train_file, 'train').to_csv(file_path + 'train_df.csv', index=False)
     get_data(test_files, 'test').to_csv(file_path + 'test_df.csv', index=False)
