@@ -177,7 +177,7 @@ def get_features(x, y, seg_id):
 # -------------- END OF CODE ---------------
 
 if __name__ == '__main__':
-    file_path = 'C:\\Users\\amrit\\OneDrive\\Desktop\\files\\'
+    file_path = ''
 
     train_file = file_path + 'train.csv'
 
