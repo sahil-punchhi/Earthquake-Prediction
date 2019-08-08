@@ -5,56 +5,75 @@
 # - classic_sta_lta   -> lta_sta_function
 # - calc_change_rate -> change_rate_calculation
 
+<<<<<<< HEAD
 # kstat_    -> k_static
 # moment_   -> moments
 # kstatvar_ -> variable_k_static
+=======
+# kstat_    -> kstat
+# moment_   -> moment
+# kstatvar_ -> variable_k_stat
+>>>>>>> a1b33bbb488dff4bee0def3e466015beaf77627e
 
- #####################
+# get_features()
+
+#####################
 # COMPLETED
 # -
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
+<<<<<<< HEAD
 from scipy import stats
+=======
+from collections import defaultdict
+
+>>>>>>> a1b33bbb488dff4bee0def3e466015beaf77627e
 
 # -----------------Aarushi -----------
 
+
 def trend_adding_feature(array, absolute=False):
-  arr_len = len(array)
-  index = np.array(range(arr_len))
-  if absolute:
-    array = np.abs(array)
-  lr = LinearRegression().fit(index.reshape(-1, 1), array)
-  return lr.coef_[0]
+    arr_len = len(array)
+    index = np.array(range(arr_len))
+
+    if absolute:
+        array = np.abs(array)
+
+    lr = LinearRegression().fit(index.reshape(-1, 1), array)
+
+    return lr.coef_[0]
 
 
 def lta_sta_function(x, length_sta, length_lta):
-  x_sq = x ** 2
-  sta = np.cumsum(x_sq)
+    x_sq = x ** 2
+    sta = np.cumsum(x_sq)
 
-  # Convert to float
+    # Convert to float
 
-  lta = np.require(sta, dtype=np.float)
+    lta = np.require(sta, dtype=np.float)
 
-  # Copy for LTA
-  sta = lta.copy()
+    # Copy for LTA
+    sta = lta.copy()
 
-  # Compute the STA and the LTA
-  lta[length_lta:] = lta[length_lta:] - lta[:-length_lta]
-  sta[length_sta:] = sta[length_sta:] - sta[:-length_sta]
-  sta /= length_sta
-  lta /= length_lta
+    # Compute the STA and the LTA
+    lta[length_lta:] = lta[length_lta:] - lta[:-length_lta]
+    sta[length_sta:] = sta[length_sta:] - sta[:-length_sta]
+    sta /= length_sta
+    lta /= length_lta
 
-  # Pad zeros
-  for i in range(0, length_lta-1):
-      sta[i] = 0
+    # Pad zeros
+    for i in range(0, length_lta-1):
+        sta[i] = 0
 
-  # Avoid division by zero by setting zero values to tiny float
-  tiny_val = np.finfo(0.0).tiny
-  index_new = lta < tiny_val
-  lta[index_new] = tiny_val
-  return_val = sta / lta
-  return return_val
+    # Avoid division by zero by setting zero values to tiny float
+    tiny_val = np.finfo(0.0).tiny
+    index_new = lta < tiny_val
+    lta[index_new] = tiny_val
+    return_val = sta / lta
+
+    return return_val
+
 
 def change_rate_calculation(x):
   x_ = np.diff(x)
