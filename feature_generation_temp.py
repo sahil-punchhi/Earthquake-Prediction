@@ -8,6 +8,7 @@
 # kstat_    -> k_static
 # moment_   -> moments
 # kstatvar_ -> variable_k_static
+# features -> generate_features
 
 # get_features()
 
