@@ -5,16 +5,18 @@
 # - classic_sta_lta   -> lta_sta_function
 # - calc_change_rate -> change_rate_calculation
 
-# kstat_    -> k_static
-# moment_   -> moments
-# kstatvar_ -> variable_k_static
-# features -> generate_features
-
 # get_features()
+# features() -> generate_features()
 
 #####################
 # COMPLETED
-# -
+# moment_   -> moments
+# kstatvar_ -> variable_k_static
+# med -> median
+# kstat_ ->  k_static
+# skew -> skewness
+# mad -> mean_abs_dev
+# kurt -> kurtosis
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -92,18 +94,26 @@ def generate_features(x):
 
     # -----------------Rishabh -----------
 
-    for interval in feature_intervals['kstat']:
+    for interval in feature_intervals['k_static']:
         feature_collection['k_static_{interval}']=stats.kstat(x,interval)
 
-    for interval in feature_intervals['moment']:
-        feature_collection['moments_{interval}']=stats.moment(x,interval)
+    feature_collection['mean_abs_dev'] = x.mad()
 
     for interval in feature_intervals['variable_k_stat']:
-        feature_collection['variable_k_static_{interval}']=stats.kstatvar(x,interval)
+      feature_collection['variable_k_static_{interval}']=stats.kstatvar(x,interval)
+
+    feature_collection['kurtosis'] = x.kurtosis()
+    
+    for interval in feature_intervals['k_static']:
+        feature_collection['moments_{interval}']=stats.moment(x,interval)
+
+    feature_collection['median'] = x.median()
+
+    feature_collection['skewness'] = x.skew()
+
+    # ----------- End of Code ----------------
 
     return feature_collection
-
-# ----------- End of Code ----------------
 
 
 if __name__ == '__main__':
