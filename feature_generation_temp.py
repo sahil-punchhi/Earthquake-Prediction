@@ -5,6 +5,10 @@
 # - classic_sta_lta   -> lta_sta_function
 # - calc_change_rate -> change_rate_calculation
 
+#kstat_    -> kstat
+#moment_   -> moment
+#kstatvar_ -> variable_k_stat
+
  #####################
 # COMPLETED
 # -
