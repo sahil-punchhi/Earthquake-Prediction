@@ -94,10 +94,10 @@ def generate_features(x, y, seg_id):
     for interval in feature_intervals['k_static']:
         feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
 
-    # feature_collection['mean_abs_dev'] = x.mad()
+    feature_collection['mean_abs_dev'] = stats.median_absolute_deviation(x)
 
     for interval in feature_intervals['variable_k_stat']:
-        feature_collection['variable_k_static_{interval}'] =     stats.kstatvar(x, interval)
+        feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
 
     # feature_collection['kurtosis'] = x.kurtosis()
 
