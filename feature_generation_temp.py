@@ -1,8 +1,8 @@
 # This is the temp file add your code here
 
 # CURRENTLY DOING
-# - add_trend_feature
-# - classic_sta_lta
+# - add_trend_feature -> trend_adding_feature
+# - classic_sta_lta   -> classic_lta_sta
 
  #####################
 # COMPLETED
