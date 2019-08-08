@@ -40,7 +40,6 @@ def lta_sta_function(x, length_sta, length_lta):
     sta = np.cumsum(x_sq)
 
     # Convert to float
-
     lta = np.require(sta, dtype=np.float)
 
     # Copy for LTA
