@@ -229,7 +229,7 @@ def generate_features(x):
     for slice, threshold_limit in product([50000, 100000, 150000], [5, 10, 20, 50, 100]):
         x_sliced = np.abs(x[-slice:])
         feature_collection[f'count_{slice}_greater_than_threshold_{threshold_limit}'] = (x_sliced > threshold_limit).sum()
-        feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = ( x_sliced < threshold_limit).sum()
+        feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = (x_sliced < threshold_limit).sum()
 
     # aggregations on various slices of data
     for type_of_aggregation, movement_direction, slice in product(['std', 'mean', 'max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
