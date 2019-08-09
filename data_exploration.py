@@ -1,4 +1,3 @@
-# http://hyperphysics.phy-astr.gsu.edu/hbase/Math/fft.html
 
 import gc
 import os
@@ -12,6 +11,7 @@ import seaborn as sns
 from scipy import stats
 import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
+import statsmodels
 
 path = "/Users/sahilpunchhi/Desktop/COMP 9417 ML/Project"
 os.chdir(path)
@@ -23,7 +23,7 @@ train_df = pd.read_csv(os.path.join(path, 'train.csv'), dtype={'acoustic_data': 
 # segments = int(np.floor(train_df.shape[0] / rows))
 # print("Number of segments: ", segments)
 
-##################################################################
+###################################################################################################################
 # DATA EXPLORATION
 ##################################################################
 
@@ -56,14 +56,23 @@ def visualize_experimental_data(acoustic_data, time_to_failure_data, sample_type
     plt.grid(True)
     plt.show()
 
+# function to plot the cummulative distribution of data field
+# first argument: data field, second argument: title of plot, third argument: data label
+def plot_peak_data(time_to_failure_data,title, data_label):
+    plt.figure(figsize=(10, 6))
+    plt.title(title)
+    axis = sns.distplot(time_to_failure_data, hist_kws=dict(cumulative=True), kde_kws=dict(cumulative=True))
+    axis.set_xlabel(data_label)
+    plt.grid(True)
+    plt.show()
 
 # no of data points in train data
 number_of_rows_train = train_df.shape[0]
 number_of_columns_train = train_df.shape[1]
 
 # description of training data
-train_df.acoustic_data.describe()
-train_df.time_to_failure.describe()
+print(train_df.acoustic_data.describe())
+print(train_df.time_to_failure.describe())
 
 # display top 10 rows of training data
 pd.options.display.precision = 15
@@ -96,4 +105,13 @@ time_to_failure_sample2 = train_df['time_to_failure'].values[: int(np.floor((num
 sample2 = "first 2% of overall data"
 visualize_experimental_data(acoustic_sample3, time_to_failure_sample2, sample2)
 
+# acoustic signals with value above 450 are defined as peaks
+peaks_acoustic = train_df[train_df.acoustic_data.abs() > 450]
+peaks_acoustic.time_to_failure.describe()
 
+# plot cumulative distribution of time_to_failure for peak values
+title_peak = "Cumulative distribution of time_to_failure with high amplitude"
+data_label_peak = "time_to_failure"
+plot_peak_data(peaks_acoustic.time_to_failure, title_peak, data_label_peak)
+
+##################################################################################################################
