@@ -1,17 +1,17 @@
 # This is the temp file add your code here
 
 # CURRENTLY DOING
-# - add_trend_feature -> trend_adding_feature
-# - classic_sta_lta   -> sta_lta_function
-# - calc_change_rate -> change_rate_calculation
-# - classic_sta_ltaN_mean -> sta_lta_mean_N
-# - count_big_{slice_length}_threshold_{threshold} -> count_{slice}_greater_than_threshold_{threshold_limit}
-# - trend -> linear_trend
-# - abs_trend -> absolute_linear_trend
-# - mean std max min
-# - {agg_type}_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}
-
+# max_to_min
+# max_to_min_diff
+# count_big
+# sum
 # get_features()
+# mean_change_rate
+# mean_change_rate_{direction}_{slice_length}
+# percentile
+# abs_percentile
+
+
 
 #####################
 # COMPLETED
@@ -23,6 +23,21 @@
 # autocorrelation -> correlation
 # skewness
 
+# - add_trend_feature -> trend_adding_feature
+# - classic_sta_lta   -> sta_lta_function
+# - calc_change_rate -> change_rate_calculation
+# - classic_sta_ltaN_mean -> sta_lta_mean_N
+# - count_big_{slice_length}_threshold_{threshold} -> count_{slice}_greater_than_threshold_{threshold_limit}
+# - trend -> linear_trend
+# - abs_trend -> absolute_linear_trend
+# - mean std max min
+# - {agg_type}_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}
+# - mean_change_abs
+# - abs_max
+# - abs_mean
+# - abs_std
+# - hmean
+# - gmean
 from itertools import product
 
 import numpy as np
@@ -128,11 +143,28 @@ def generate_features(x, y, seg_id):
 
     # -----------------Aarushi-------------------
 
+    # geometric and harminic means
+    x_val = x[np.nonzero(x)[0]]
+    feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
+    feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
+
+    # geometric and harminic means
+    feature_collection['hmean'] = stats.hmean(np.abs(x[np.nonzero(x)[0]]))
+    feature_collection['gmean'] = stats.gmean(np.abs(x[np.nonzero(x)[0]]))
+
+
+
     # basic stats
     feature_collection['mean'] = mean(x)
     feature_collection['std'] = x.std()
     feature_collection['max'] = max(x)
     feature_collection['min'] = min(x)
+
+    # basic stats on absolute values
+    feature_collection['mean_change_abs'] = (np.diff(x)).mean()
+    feature_collection['abs_max'] = max(np.abs(x))
+    feature_collection['abs_mean'] = np.mean(np.abs(x))
+    feature_collection['abs_std'] = np.abs(x).std()
 
     feature_collection['sta_lta_mean_1'] = mean(sta_lta_function(x, 500, 10000))
     feature_collection['sta_lta_mean_2'] = mean(sta_lta_function(x, 4000, 10000))
