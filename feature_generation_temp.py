@@ -11,15 +11,18 @@
 # - mean std max min
 # - {agg_type}_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}
 
-# kstat_    -> k_static
-# moment_   -> moments
-# kstatvar_ -> variable_k_static
-
 # get_features()
 
 #####################
 # COMPLETED
-# -
+# -k_static
+#  median_abs_dev
+# variable_k_static
+# kurtosis
+# moments
+# autocorrelation -> correlation
+# skewness
+
 from itertools import product
 
 import numpy as np
@@ -27,8 +30,9 @@ import pandas as pd
 from scipy.ndimage import mean
 from sklearn.linear_model import LinearRegression
 from scipy import stats
-#from statistics import mean
+from tsfresh.feature_extraction import feature_calculators
 from joblib import Parallel, delayed
+import statistics
 
 # ----------------- Aarushi -----------
 
@@ -90,31 +94,35 @@ def generate_features(x, y, seg_id):
     feature_collection = {}
 
     # collection of intervals
-    feature_intervals = {
-        'k_static': list(range(1, 5)),
-        'variable_k_stat': [1, 2]
+    feature_intervals={
+        'k_static':list(range(1,5)),
+        'variable_k_static':[1,2],
+        'auto_lags':[5, 10, 50, 100, 500, 1000, 5000, 10000]
     }
 
     # add your section here
 
     # -----------------Rishabh -----------
 
-    #for interval in feature_intervals['k_static']:
-    #    feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
+    for interval in feature_intervals['k_static']:
+       feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
 
-    #feature_collection['mean_abs_dev'] = stats.median_absolute_deviation(x)
+    feature_collection['median_abs_dev'] = stats.median_absolute_deviation(x)
 
-    #for interval in feature_intervals['variable_k_stat']:
-    #    feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
+    for interval in feature_intervals['variable_k_static']:
+       feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
 
-    # feature_collection['kurtosis'] = x.kurtosis()
+    feature_collection['kurtosis'] = stats.kurtosis(x)
 
-    #for interval in feature_intervals['k_static']:
-    #    feature_collection['moments_{interval}'] = stats.moment(x, interval)
+    for interval in feature_intervals['k_static']:
+       feature_collection['moments_{interval}'] = stats.moment(x, interval)
 
-    # feature_collection['median'] = x.median()
+    feature_collection['median'] = statistics.median(x)
 
-    # feature_collection['skewness'] = x.skew()
+    feature_collection['skewness'] = stats.skew(x)
+
+    for interval in feature_intervals['auto_lags']:
+      feature_collection['correlation_{interval}']=feature_calculators.autocorrelation(x, interval)
 
     # ----------- End of Code ----------------
 
