@@ -14,13 +14,16 @@
 
 #####################
 # COMPLETED
-# -k_static
-#  median_abs_dev
-# variable_k_static
+# kstat -> k_static
+#  mad -> median_abs_dev
+# kstatvar -> variable_k_static
 # kurtosis
-# moments
+# moment_ -> moments
 # autocorrelation -> correlation
-# skewness
+# skew -> skewness
+# num_peaks_{peak} -> {interval}_peak_number
+# rolling mean is not working
+# percentile_roll_std_{p}_window_{w}' -> {interval}_{sub_interval}_standard_percentile_roll
 
 from itertools import product
 
@@ -103,6 +106,13 @@ def generate_features(x, y, seg_id):
 
     # -----------------Rishabh -----------
 
+    # for interval in [500, 10000,1000, 10, 50, 100]:
+
+    #     standard_dev = x.rolling(interval).std().dropna().values
+
+    #     for sub_interval in [50, 60, 70, 75, 1, 5, 10, 20, 25, 30, 40, 80, 90, 95, 99]:
+    #         feature_collection[f'{interval}_{sub_interval}_standard_percentile_roll'] = np.percentile(standard_dev, interval)
+
     for interval in feature_intervals['k_static']:
        feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
 
@@ -122,6 +132,12 @@ def generate_features(x, y, seg_id):
 
     for interval in feature_intervals['auto_lags']:
       feature_collection['correlation_{interval}']=feature_calculators.autocorrelation(x, interval)
+
+    for interval in [50,10,100,20]:
+        feature_collection[f'{interval}_peak_number'] = feature_calculators.number_peaks(x, interval)
+        
+
+    
 
     # ----------- End of Code ----------------
 
