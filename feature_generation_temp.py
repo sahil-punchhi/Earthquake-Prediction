@@ -1,14 +1,8 @@
 # This is the temp file add your code here
 
 # CURRENTLY DOING
-# - add_trend_feature -> trend_adding_feature
-# - classic_sta_lta   -> sta_lta_function
-# - calc_change_rate -> change_rate_calculation
-# - classic_sta_ltaN_mean -> sta_lta_mean_N
-# - count_big_{slice_length}_threshold_{threshold} -> count_{slice}_greater_than_threshold_{threshold_limit}
-# - trend -> linear_trend
-# - abs_trend -> absolute_linear_trend
-# - {agg_type}_{direction}_{slice_length} ->
+# mean_change_rate_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_valid_mean_change_rate
+
 
 # get_features()
 
@@ -24,6 +18,31 @@
 # num_peaks_{peak} -> {interval}_peak_number
 # rolling mean is not working
 # percentile_roll_std_{p}_window_{w}' -> {interval}_{sub_interval}_standard_percentile_roll
+
+# - add_trend_feature -> trend_adding_feature
+# - classic_sta_lta   -> sta_lta_function
+# - calc_change_rate -> change_rate_calculation
+# - classic_sta_ltaN_mean -> sta_lta_mean_N
+# - count_big_{slice_length}_threshold_{threshold} -> count_{slice}_greater_than_threshold_{threshold_limit}
+# - trend -> linear_trend
+# - abs_trend -> absolute_linear_trend
+# - mean std max min
+# - {agg_type}_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}
+# - mean_change_abs
+# - abs_max
+# - abs_mean
+# - abs_std
+# - hmean -> harmonic_meanm
+# - gmean -> geometric_mean
+# max_to_min -> maximum_absoluteMinimum_ratio
+# max_to_min_diff -> diff_maximum_and_minimum
+# count_big -> count_x_greater_than_500_BIG
+# sum -> x_sum
+# mean_change_rate -> valid_mean_change_rate
+# var percentile -> percentile_divisions
+# percentile_{p} -> {p}th_percentile
+# abs_percentile_{p} -> {p}th_abs_percentile
+
 
 from itertools import product
 
@@ -142,6 +161,24 @@ def generate_features(x, y, seg_id):
     # ----------- End of Code ----------------
 
     # -----------------Aarushi-------------------
+
+    # geometric and harminic means
+    x_val = x[np.nonzero(x)[0]]
+    feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
+    feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
+
+    # basic stats
+    feature_collection['mean'] = mean(x)
+    feature_collection['std'] = x.std()
+    feature_collection['max'] = max(x)
+    feature_collection['min'] = min(x)
+
+    # basic stats on absolute values
+    feature_collection['mean_change_abs'] = (np.diff(x)).mean()
+    feature_collection['abs_max'] = max(np.abs(x))
+    feature_collection['abs_mean'] = np.mean(np.abs(x))
+    feature_collection['abs_std'] = np.abs(x).std()
+
     feature_collection['sta_lta_mean_1'] = mean(sta_lta_function(x, 500, 10000))
     feature_collection['sta_lta_mean_2'] = mean(sta_lta_function(x, 4000, 10000))
     feature_collection['sta_lta_mean_3'] = mean(sta_lta_function(x, 5000, 100000))
@@ -151,6 +188,43 @@ def generate_features(x, y, seg_id):
     feature_collection['sta_lta_mean_7'] = mean(sta_lta_function(x, 50, 1000))
     feature_collection['sta_lta_mean_8'] = mean(sta_lta_function(x, 10000, 25000))
 
+    percentile_divisions = [1, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 99]
+
+    for p in percentile_divisions:
+        feature_collection[f'{p}th_abs_percentile'] = np.percentile(np.abs(x), p)
+        feature_collection[f'{p}th_percentile'] = np.percentile(x, p)
+
+
+    feature_collection['maximum_absoluteMinimum_ratio'] = max(x) / np.abs(min(x))
+    feature_collection['diff_maximum_and_minimum'] = max(x) - np.abs(min(x))
+    feature_collection['x_sum'] = x.sum()
+    feature_collection['count_x_greater_than_500_BIG'] = len(x[np.abs(x) > 500])
+
+
+    feature_collection['max_to_min'] = x.max() / np.abs(x.min())
+    feature_collection['max_to_min_diff'] = x.max() - np.abs(x.min())
+    feature_collection['count_big'] = len(x[np.abs(x) > 500])
+    feature_collection['sum'] = x.sum()
+
+    feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
+
+    # calc_change_rate on slices of data
+    for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
+        if movement_direction == 'last':
+            x_sliced = x[-slice:]
+            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+        elif movement_direction == 'first':
+            x_sliced = x[:slice]
+            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+            print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+
+    for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
+        if direction == 'first':
+            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
+            print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+        elif direction == 'last':
+            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
+
     feature_collection['linear_trend'] = trend_adding_feature(x)
     feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute =True)
 
@@ -158,10 +232,18 @@ def generate_features(x, y, seg_id):
         x_sliced = np.abs(x[-slice:])
         feature_collection[f'count_{slice}_greater_than_threshold_{threshold_limit}'] = (x_sliced > threshold_limit).sum()
         feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = ( x_sliced < threshold_limit).sum()
+
+    #aggregations on various slices of data
+    for type_of_aggregation, movement_direction, slice in product(['std', 'mean','max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
+        if movement_direction == 'last':
+            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)
+        elif movement_direction == 'first':
+            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)
+
+
     # ------------------End of Code-----------------
 
     return feature_collection
-
 
 # ----------------- Amritesh ---------------
 
