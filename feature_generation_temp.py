@@ -100,14 +100,14 @@ def sta_lta_function(x, length_sta, length_lta):
     return return_val
 
 
-def change_rate_calculation(x):
-    x_ = np.diff(x)
-    change_val = (x_ / x[:-1])
-    change_val = change_val[(change_val != 0)]
-    change_val = change_val[np.isfinite(change_val)]
-    return_val = np.mean(change_val)
-
-    return return_val
+# def change_rate_calculation(x):
+#     x_ = np.diff(x)
+#     change_val = (x_ / x[:-1])
+#     change_val = change_val[(change_val != 0)]
+#     change_val = change_val[np.isfinite(change_val)]
+#     return_val = np.mean(change_val)
+#
+#     return return_val
 
 # ----------- End of Code ----------------
 
@@ -163,9 +163,9 @@ def generate_features(x):
     # -----------------Aarushi-------------------
 
     # geometric and harminic means
-    x_val = x[np.nonzero(x)[0]]
-    feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
-    feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
+    # x_val = x[np.nonzero(x)[0]]
+    # feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
+    # feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
 
     # basic stats
     feature_collection['mean'] = mean(x)
@@ -204,24 +204,24 @@ def generate_features(x):
     feature_collection['count_big'] = len(x[np.abs(x) > 500])
     feature_collection['sum'] = x.sum()
 
-    feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
+    # feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
 
     # calc_change_rate on slices of data
-    for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
-        if movement_direction == 'last':
-            x_sliced = x[-slice:]
-            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-        elif movement_direction == 'first':
-            x_sliced = x[:slice]
-            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-            # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
-
-    for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
-        if direction == 'first':
-            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
-            # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
-        elif direction == 'last':
-            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
+    # for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
+    #     if movement_direction == 'last':
+    #         x_sliced = x[-slice:]
+    #         feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+    #     elif movement_direction == 'first':
+    #         x_sliced = x[:slice]
+    #         feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+    #         # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+    #
+    # for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
+    #     if direction == 'first':
+    #         feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
+    #         # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+    #     elif direction == 'last':
+    #         feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
 
     feature_collection['linear_trend'] = trend_adding_feature(x)
     feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute=True)
@@ -232,11 +232,11 @@ def generate_features(x):
         feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = (x_sliced < threshold_limit).sum()
 
     # aggregations on various slices of data
-    for type_of_aggregation, movement_direction, slice in product(['std', 'mean', 'max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
-        if movement_direction == 'last':
-            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)
-        elif movement_direction == 'first':
-            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)
+    # for type_of_aggregation, movement_direction, slice in product(['std', 'mean', 'max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
+    #     if movement_direction == 'last':
+    #         feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)
+    #     elif movement_direction == 'first':
+    #         feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)
 
     # ------------------End of Code-----------------
 
@@ -300,7 +300,7 @@ def preprocessing(path):
     xtrain, ytrain = get_train_data(train_file, num_cores)
     xtrain.to_csv(path + 'train_df.csv', index=False)
 
-    test_files = [path + 'test/' + i + '.csv' for i in (pd.read_csv(file_path + 'sample_submission.csv'))['seg_id'].tolist()]
+    test_files = [path + 'test/' + i + '.csv' for i in (pd.read_csv(path + 'sample_submission.csv'))['seg_id'].tolist()]
     xtest = get_test_data(test_files, num_cores)
     xtest.to_csv(path + 'test_df.csv', index=False)
 
