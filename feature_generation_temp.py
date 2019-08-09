@@ -309,7 +309,7 @@ def preprocessing(path):
 # -------------- END OF CODE ---------------
 
 
-if __name__ == '__main__':
-    file_path = os.getcwd() + '/data_files/'
-
-    X_train, y_train, X_test = preprocessing(file_path)
+# if __name__ == '__main__':
+#     file_path = os.getcwd() + '/data_files/'
+#
+#     X_train, y_train, X_test = preprocessing(file_path)
