@@ -1,17 +1,10 @@
 # This is the temp file add your code here
 
 # CURRENTLY DOING
-# max_to_min
-# max_to_min_diff
-# count_big
-# sum
+# mean_change_rate_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_valid_mean_change_rate
+
+
 # get_features()
-# mean_change_rate
-# mean_change_rate_{direction}_{slice_length}
-# percentile
-# abs_percentile
-
-
 
 #####################
 # COMPLETED
@@ -36,8 +29,18 @@
 # - abs_max
 # - abs_mean
 # - abs_std
-# - hmean
-# - gmean
+# - hmean -> harmonic_meanm
+# - gmean -> geometric_mean
+# max_to_min -> maximum_absoluteMinimum_ratio
+# max_to_min_diff -> diff_maximum_and_minimum
+# count_big -> count_x_greater_than_500_BIG
+# sum -> x_sum
+# mean_change_rate -> valid_mean_change_rate
+# var percentile -> percentile_divisions
+# percentile_{p} -> {p}th_percentile
+# abs_percentile_{p} -> {p}th_abs_percentile
+
+
 from itertools import product
 
 import numpy as np
@@ -148,12 +151,6 @@ def generate_features(x, y, seg_id):
     feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
     feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
 
-    # geometric and harminic means
-    feature_collection['hmean'] = stats.hmean(np.abs(x[np.nonzero(x)[0]]))
-    feature_collection['gmean'] = stats.gmean(np.abs(x[np.nonzero(x)[0]]))
-
-
-
     # basic stats
     feature_collection['mean'] = mean(x)
     feature_collection['std'] = x.std()
@@ -174,6 +171,43 @@ def generate_features(x, y, seg_id):
     feature_collection['sta_lta_mean_6'] = mean(sta_lta_function(x, 100, 5000))
     feature_collection['sta_lta_mean_7'] = mean(sta_lta_function(x, 50, 1000))
     feature_collection['sta_lta_mean_8'] = mean(sta_lta_function(x, 10000, 25000))
+
+    percentile_divisions = [1, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 99]
+
+    for p in percentile_divisions:
+        feature_collection[f'{p}th_abs_percentile'] = np.percentile(np.abs(x), p)
+        feature_collection[f'{p}th_percentile'] = np.percentile(x, p)
+
+
+    feature_collection['maximum_absoluteMinimum_ratio'] = max(x) / np.abs(min(x))
+    feature_collection['diff_maximum_and_minimum'] = max(x) - np.abs(min(x))
+    feature_collection['x_sum'] = x.sum()
+    feature_collection['count_x_greater_than_500_BIG'] = len(x[np.abs(x) > 500])
+
+
+    feature_collection['max_to_min'] = x.max() / np.abs(x.min())
+    feature_collection['max_to_min_diff'] = x.max() - np.abs(x.min())
+    feature_collection['count_big'] = len(x[np.abs(x) > 500])
+    feature_collection['sum'] = x.sum()
+
+    feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
+
+    # calc_change_rate on slices of data
+    for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
+        if movement_direction == 'last':
+            x_sliced = x[-slice:]
+            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+        elif movement_direction == 'first':
+            x_sliced = x[:slice]
+            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+            print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+
+    for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
+        if direction == 'first':
+            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
+            print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+        elif direction == 'last':
+            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
 
     feature_collection['linear_trend'] = trend_adding_feature(x)
     feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute =True)
