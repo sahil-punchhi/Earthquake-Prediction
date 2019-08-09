@@ -3,14 +3,14 @@ import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import lightgbm as lgb
+import lightgbm as lgbm
 import seaborn as sns
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_absolute_error
 from feature_generation_temp import preprocessing
 
 
-def train_model(X, y, X_test, ):
+def train_model(X, y, X_test):
     oof = np.array([0.0] * X.shape[0])
     prediction = np.array([0.0] * X_test.shape[0])
     scores = []
@@ -20,53 +20,51 @@ def train_model(X, y, X_test, ):
         X_train, X_valid = X.iloc[train_group], X.iloc[test_group]
         y_train, y_valid = y.iloc[train_group], y.iloc[test_group]
 
-        feature_model = lgb.LGBMRegressor(
+        feature_model = lgbm.LGBMRegressor(
             n_estimators=50000,
             n_jobs=-1,
             num_leaves=128,
-            min_data_in_leaf=79,
+            min_child_samples=79,
             objective='gamma',
             max_depth=-1,
             learning_rate=0.01,
-            boosting='gbdt',
-            bagging_freq=5,
-            bagging_fraction=0.8126672064208567,
+            boosting_type='gbdt',
+            subsample_freq=5,
+            subsample=0.8126672064208567,
             bagging_seed=11,
             metric='mae',
             verbosity=-1,
             reg_alpha=0.1302650970728192,
             reg_lambda=0.3603427518866501,
-            feature_fraction=0.2
+            colsample_bytree=0.2
         )
 
         feature_model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_valid, y_valid)], eval_metric='mae', verbose=10000, early_stopping_rounds=200)
 
         y_pred_valid = feature_model.predict(X_valid)
-        y_pred = feature_model.predict(X_test, num_iteration=feature_model.best_iteration_)
 
-    #     oof[valid_index] = y_pred_valid.reshape(-1, )
-    #     scores.append(mean_absolute_error(y_valid, y_pred_valid))
-    #
-    #     prediction += y_pred
-    #
-    #     # feature importance
-    #     fold_importance = pd.DataFrame()
-    #     fold_importance["feature"] = X.columns
-    #     fold_importance["importance"] = model.feature_importances_
-    #     fold_importance["fold"] = fold_n + 1
-    #     feature_importance = pd.concat([feature_importance, fold_importance], axis=0)
-    #
-    # prediction /= n_fold
-    #
-    # print('CV mean score: {0:.4f}, std: {1:.4f}.'.format(np.mean(scores), np.std(scores)))
-    #
-    # feature_importance["importance"] /= n_fold
-    # cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(
-    #     by="importance", ascending=False)[:50].index
-    #
-    # best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
+        oof[test_group] = y_pred_valid.reshape(-1, )
+        scores.append(mean_absolute_error(y_valid, y_pred_valid))
 
-    # print(best_features)
+        prediction += feature_model.predict(X_test, num_iteration=feature_model.best_iteration_)
+
+        # feature importance
+        fold_importance = pd.DataFrame()
+        fold_importance["feature"] = X.columns
+        fold_importance["importance"] = feature_model.feature_importances_
+        fold_importance["fold"] = 4   # no of folds + 1
+        feature_importance = pd.concat([feature_importance, fold_importance], axis=0)
+
+    prediction /= 3   # no of folds
+
+    print('CV mean score: {0:.4f}, std: {1:.4f}.'.format(np.mean(scores), np.std(scores)))
+
+    feature_importance["importance"] /= 3   # no of folds
+    cols = feature_importance[["feature", "importance"]].groupby("feature").mean().sort_values(by="importance", ascending=False)[:50].index
+
+    best_features = feature_importance.loc[feature_importance.feature.isin(cols)]
+
+    print(best_features)
 
     # plt.figure(figsize=(16, 12))
     # sns.barplot(x="importance", y="feature", data=best_features.sort_values(by="importance", ascending=False))
