@@ -300,7 +300,7 @@ def preprocessing(path):
     xtrain, ytrain = get_train_data(train_file, num_cores)
     xtrain.to_csv(path + 'train_df.csv', index=False)
 
-    test_files = [path + 'test/' + i + '.csv' for i in (pd.read_csv(file_path + 'sample_submission.csv'))['seg_id'].tolist()]
+    test_files = [path + 'test/' + i + '.csv' for i in (pd.read_csv(path + 'sample_submission.csv'))['seg_id'].tolist()]
     xtest = get_test_data(test_files, num_cores)
     xtest.to_csv(path + 'test_df.csv', index=False)
 
