@@ -8,7 +8,8 @@
 # - count_big_{slice_length}_threshold_{threshold} -> count_{slice}_greater_than_threshold_{threshold_limit}
 # - trend -> linear_trend
 # - abs_trend -> absolute_linear_trend
-# - {agg_type}_{direction}_{slice_length} ->
+# - mean std max min
+# - {agg_type}_{direction}_{slice_length} -> from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}
 
 # kstat_    -> k_static
 # moment_   -> moments
@@ -118,6 +119,13 @@ def generate_features(x, y, seg_id):
     # ----------- End of Code ----------------
 
     # -----------------Aarushi-------------------
+
+    # basic stats
+    feature_collection['mean'] = mean(x)
+    feature_collection['std'] = x.std()
+    feature_collection['max'] = max(x)
+    feature_collection['min'] = min(x)
+
     feature_collection['sta_lta_mean_1'] = mean(sta_lta_function(x, 500, 10000))
     feature_collection['sta_lta_mean_2'] = mean(sta_lta_function(x, 4000, 10000))
     feature_collection['sta_lta_mean_3'] = mean(sta_lta_function(x, 5000, 100000))
@@ -134,10 +142,18 @@ def generate_features(x, y, seg_id):
         x_sliced = np.abs(x[-slice:])
         feature_collection[f'count_{slice}_greater_than_threshold_{threshold_limit}'] = (x_sliced > threshold_limit).sum()
         feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = ( x_sliced < threshold_limit).sum()
+
+    #aggregations on various slices of data
+    for type_of_aggregation, movement_direction, slice in product(['std', 'mean','max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
+        if movement_direction == 'last':
+            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)
+        elif movement_direction == 'first':
+            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)
+
+
     # ------------------End of Code-----------------
 
     return feature_collection
-
 
 # ----------------- Amritesh ---------------
 
