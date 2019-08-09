@@ -8,16 +8,16 @@
 
 #####################
 # COMPLETED
-# kstat -> k_static
+# kstat -> {interval}_k_static
 #  mad -> median_abs_dev
-# kstatvar -> variable_k_static
+# kstatvar -> {interval}_variable_k_static
 # kurtosis
-# moment_ -> moments
-# autocorrelation -> correlation
+# moment_ -> {interval}_moments
+# autocorrelation -> {interval}_correlation
 # skew -> skewness
 # num_peaks_{peak} -> {interval}_peak_number
-# rolling mean is not working
-# percentile_roll_std_{p}_window_{w}' -> {interval}_{sub_interval}_standard_percentile_roll
+# percentile_roll_std_{p}_window_{w}' -> {interval}_{sub_interval}_standard_percentile
+# c3 -> discrimination_power_{interval}
 
 # - add_trend_feature -> trend_adding_feature
 # - classic_sta_lta   -> sta_lta_function
@@ -117,40 +117,41 @@ def generate_features(x, y, seg_id):
     # collection of intervals
     feature_intervals={
         'k_static':list(range(1,5)),
-        'variable_k_static':[1,2],
-        'auto_lags':[5, 10, 50, 100, 500, 1000, 5000, 10000]
+        'variable_k_static':[1,2]
     }
 
     # add your section here
 
     # -----------------Rishabh -----------
+    for interval in [50,10,100,20]:
+        feature_collection[f'discrimination_power_{interval}'] = feature_calculators.c3(x, interval)
 
-    # for interval in [500, 10000,1000, 10, 50, 100]:
+    for interval in [500, 10000,1000, 10, 50, 100]:
 
-    #     standard_dev = x.rolling(interval).std().dropna().values
+        standard_dev = pd.DataFrame(x).rolling(interval).std().dropna().values
 
-    #     for sub_interval in [50, 60, 70, 75, 1, 5, 10, 20, 25, 30, 40, 80, 90, 95, 99]:
-    #         feature_collection[f'{interval}_{sub_interval}_standard_percentile_roll'] = np.percentile(standard_dev, interval)
+        for sub_interval in [50, 60, 70, 75, 1, 40, 80, 90, 95, 99, 5, 10, 20, 25, 30]:
+            feature_collection[f'{interval}_{sub_interval}_standard_percentile'] = np.percentile(standard_dev, sub_interval)
 
     for interval in feature_intervals['k_static']:
-       feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
+       feature_collection['{interval}_k_static'] = stats.kstat(x, interval)
 
     feature_collection['median_abs_dev'] = stats.median_absolute_deviation(x)
 
     for interval in feature_intervals['variable_k_static']:
-       feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
+       feature_collection['{interval}_variable_k_static'] = stats.kstatvar(x, interval)
 
     feature_collection['kurtosis'] = stats.kurtosis(x)
 
     for interval in feature_intervals['k_static']:
-       feature_collection['moments_{interval}'] = stats.moment(x, interval)
+       feature_collection['{interval}_moments'] = stats.moment(x, interval)
 
     feature_collection['median'] = statistics.median(x)
 
     feature_collection['skewness'] = stats.skew(x)
 
-    for interval in feature_intervals['auto_lags']:
-      feature_collection['correlation_{interval}']=feature_calculators.autocorrelation(x, interval)
+    for interval in [1000, 5000, 10000,5, 10, 50, 100, 500]:
+      feature_collection['{interval}_correlation']=feature_calculators.autocorrelation(x, interval)
 
     for interval in [50,10,100,20]:
         feature_collection[f'{interval}_peak_number'] = feature_calculators.number_peaks(x, interval)
@@ -216,12 +217,12 @@ def generate_features(x, y, seg_id):
         elif movement_direction == 'first':
             x_sliced = x[:slice]
             feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-            print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+            #print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
 
     for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
         if direction == 'first':
             feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
-            print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+            #print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
         elif direction == 'last':
             feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
 
