@@ -44,18 +44,20 @@
 # abs_percentile_{p} -> {p}th_abs_percentile
 
 
-from itertools import product
-
+import os
 import numpy as np
 import pandas as pd
+import statistics
+import multiprocessing as mp
 from scipy.ndimage import mean
 from sklearn.linear_model import LinearRegression
 from scipy import stats
 from tsfresh.feature_extraction import feature_calculators
 from joblib import Parallel, delayed
-import statistics
+from itertools import product
 
 # ----------------- Aarushi -----------
+
 
 def trend_adding_feature(array, absolute=False):
     arr_len = len(array)
@@ -110,23 +112,23 @@ def change_rate_calculation(x):
 # ----------- End of Code ----------------
 
 
-def generate_features(x, y, seg_id):
+def generate_features(x):
     # collection of features
     feature_collection = {}
 
     # collection of intervals
-    feature_intervals={
-        'k_static':list(range(1,5)),
-        'variable_k_static':[1,2]
+    feature_intervals = {
+        'k_static': list(range(1, 5)),
+        'variable_k_static': [1, 2]
     }
 
     # add your section here
 
-    # -----------------Rishabh -----------
-    for interval in [50,10,100,20]:
+    # ----------------- Rishabh -----------
+    for interval in [50, 10, 100, 20]:
         feature_collection[f'discrimination_power_{interval}'] = feature_calculators.c3(x, interval)
 
-    for interval in [500, 10000,1000, 10, 50, 100]:
+    for interval in [500, 10000, 1000, 10, 50, 100]:
 
         standard_dev = pd.DataFrame(x).rolling(interval).std().dropna().values
 
@@ -134,30 +136,27 @@ def generate_features(x, y, seg_id):
             feature_collection[f'{interval}_{sub_interval}_standard_percentile'] = np.percentile(standard_dev, sub_interval)
 
     for interval in feature_intervals['k_static']:
-       feature_collection['{interval}_k_static'] = stats.kstat(x, interval)
+        feature_collection['{interval}_k_static'] = stats.kstat(x, interval)
 
     feature_collection['median_abs_dev'] = stats.median_absolute_deviation(x)
 
     for interval in feature_intervals['variable_k_static']:
-       feature_collection['{interval}_variable_k_static'] = stats.kstatvar(x, interval)
+        feature_collection['{interval}_variable_k_static'] = stats.kstatvar(x, interval)
 
     feature_collection['kurtosis'] = stats.kurtosis(x)
 
     for interval in feature_intervals['k_static']:
-       feature_collection['{interval}_moments'] = stats.moment(x, interval)
+        feature_collection['{interval}_moments'] = stats.moment(x, interval)
 
     feature_collection['median'] = statistics.median(x)
 
     feature_collection['skewness'] = stats.skew(x)
 
-    for interval in [1000, 5000, 10000,5, 10, 50, 100, 500]:
-      feature_collection['{interval}_correlation']=feature_calculators.autocorrelation(x, interval)
+    for interval in [1000, 5000, 10000, 5, 10, 50, 100, 500]:
+        feature_collection[f'{interval}_correlation'] = feature_calculators.autocorrelation(x, interval)
 
-    for interval in [50,10,100,20]:
+    for interval in [50, 10, 100, 20]:
         feature_collection[f'{interval}_peak_number'] = feature_calculators.number_peaks(x, interval)
-        
-
-    
 
     # ----------- End of Code ----------------
 
@@ -195,12 +194,10 @@ def generate_features(x, y, seg_id):
         feature_collection[f'{p}th_abs_percentile'] = np.percentile(np.abs(x), p)
         feature_collection[f'{p}th_percentile'] = np.percentile(x, p)
 
-
     feature_collection['maximum_absoluteMinimum_ratio'] = max(x) / np.abs(min(x))
     feature_collection['diff_maximum_and_minimum'] = max(x) - np.abs(min(x))
     feature_collection['x_sum'] = x.sum()
     feature_collection['count_x_greater_than_500_BIG'] = len(x[np.abs(x) > 500])
-
 
     feature_collection['max_to_min'] = x.max() / np.abs(x.min())
     feature_collection['max_to_min_diff'] = x.max() - np.abs(x.min())
@@ -217,30 +214,29 @@ def generate_features(x, y, seg_id):
         elif movement_direction == 'first':
             x_sliced = x[:slice]
             feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-            #print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+            # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
 
     for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
         if direction == 'first':
             feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
-            #print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+            # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
         elif direction == 'last':
             feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
 
     feature_collection['linear_trend'] = trend_adding_feature(x)
-    feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute =True)
+    feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute=True)
 
     for slice, threshold_limit in product([50000, 100000, 150000], [5, 10, 20, 50, 100]):
         x_sliced = np.abs(x[-slice:])
         feature_collection[f'count_{slice}_greater_than_threshold_{threshold_limit}'] = (x_sliced > threshold_limit).sum()
         feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = ( x_sliced < threshold_limit).sum()
 
-    #aggregations on various slices of data
-    for type_of_aggregation, movement_direction, slice in product(['std', 'mean','max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
+    # aggregations on various slices of data
+    for type_of_aggregation, movement_direction, slice in product(['std', 'mean', 'max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
         if movement_direction == 'last':
             feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)
         elif movement_direction == 'first':
             feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)
-
 
     # ------------------End of Code-----------------
 
@@ -249,75 +245,71 @@ def generate_features(x, y, seg_id):
 # ----------------- Amritesh ---------------
 
 
-def read_data_segments(file, dclass):
-    if dclass == 'train':
-        dtypes = {
-            'acoustic_data': np.float64,
-            'time_to_failure': np.float64
-        }
+def create_feature_dict(x, y=None):
+    dft = np.fft.fft(pd.Series(x))
+    feature_collection = generate_features(x)
 
-        df = pd.read_csv(file, iterator=True, chunksize=150000, dtype=dtypes)
+    for key, val in generate_features(pd.Series(np.real(dft))).items():
+        feature_collection[f'fft_real_{key}'] = val
 
-        for i, j in enumerate(df):
-            x = j.acoustic_data.values
-            y = j.time_to_failure.values[-1]
-            seg_id = 'train_' + str(i)
-            del j
-            yield x, y, seg_id
-    elif dclass == 'test':
-        dtypes = {
-            'acoustic_data': np.float64
-        }
+    for key, val in generate_features(pd.Series(np.imag(dft))).items():
+        feature_collection[f'fft_imag_{key}'] = val
 
-        for i, j in file:
-            dfx = pd.read_csv(j, dtype=dtypes)
-            x = dfx.acoustic_data.values[-150000:]
-            y = -999
-            del dfx
-            yield x, y, i
+    if y:
+        return feature_collection, y
+
+    return feature_collection
 
 
-def get_data(file, dclass):
-    feature_list = []
-    res = Parallel(n_jobs=4, backend='threading')(delayed(get_features)(x, y, s) for x, y, s in read_data_segments(file, dclass))
+def get_train_segments(file):
+    dtypes = {
+        'acoustic_data': np.int16,
+        'time_to_failure': np.float32
+    }
 
-    for r in res:
-        feature_list.append(r)
-
-    return pd.DataFrame(feature_list)
+    for i in pd.read_csv(file, dtype=dtypes, iterator=True, chunksize=150000):
+        yield i['acoustic_data'].to_numpy(), i['time_to_failure'].to_numpy()[-1]
 
 
-def get_features(x, y, seg_id):
-    zc = np.fft.fft(pd.Series(x))
-    realFFT = pd.Series(np.real(zc))
-    imagFFT = pd.Series(np.imag(zc))
+def get_test_segments(file):
+    dtypes = {
+        'acoustic_data': np.int16
+    }
 
-    main_dict = generate_features(x, y, seg_id)
-    r_dict = generate_features(realFFT, y, seg_id)
-    i_dict = generate_features(imagFFT, y, seg_id)
+    for i in file:
+        df = pd.read_csv(i, dtype=dtypes)
+        yield df['acoustic_data'].to_numpy()
 
-    for k, v in r_dict.items():
-        if k not in ['target', 'seg_id']:
-            main_dict[f'fftr_{k}'] = v
 
-    for k, v in i_dict.items():
-        if k not in ['target', 'seg_id']:
-            main_dict[f'ffti_{k}'] = v
+def get_train_data(file, cores):
+    features = Parallel(n_jobs=cores, backend='threading')(delayed(create_feature_dict)(x, y) for x, y in get_train_segments(file))
 
-    return main_dict
+    return pd.DataFrame([f[0] for f in features]), pd.DataFrame([f[1] for f in features])
 
+
+def get_test_data(file, cores):
+    features = Parallel(n_jobs=cores, backend='threading')(delayed(create_feature_dict)(x) for x in get_test_segments(file))
+
+    return pd.DataFrame([f for f in features])
+
+
+def preprocessing(path):
+    num_cores = mp.cpu_count()
+
+    train_file = path + 'train.csv'
+    xtrain, ytrain = get_train_data(train_file, num_cores)
+    xtrain.to_csv(path + 'train_df.csv', index=False)
+
+    test_files = [path + 'test/' + i + '.csv' for i in (pd.read_csv(file_path + 'sample_submission.csv'))['seg_id'].tolist()]
+    xtest = get_test_data(test_files, num_cores)
+    xtest.to_csv(path + 'test_df.csv', index=False)
+
+    return xtrain, ytrain, xtest
 
 # -------------- END OF CODE ---------------
 
+
 if __name__ == '__main__':
-    file_path = './'
+    file_path = os.getcwd() + '/data_files/'
 
-    train_file = file_path + 'train.csv'
-
-    test_files = []
-    submission = pd.read_csv(file_path + 'sample_submission.csv')
-    for seg_id in submission.seg_id.values:
-        test_files.append((seg_id, file_path + 'test/' + seg_id + '.csv'))
-
-    get_data(train_file, 'train').to_csv(file_path + 'train_df.csv', index=False)
-    get_data(test_files, 'test').to_csv(file_path + 'test_df.csv', index=False)
+    X_train, y_train, X_test = preprocessing(file_path)
