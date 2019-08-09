@@ -1,4 +1,9 @@
+# files not to be commited in master
 .idea
+test_df.csv
+train_df.csv
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
