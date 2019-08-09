@@ -2,8 +2,10 @@
 
 # CURRENTLY DOING
 # - add_trend_feature -> trend_adding_feature
-# - classic_sta_lta   -> lta_sta_function
+# - classic_sta_lta   -> sta_lta_function
 # - calc_change_rate -> change_rate_calculation
+# - classic_sta_ltaN_mean -> sta_lta_mean_N
+# - count_big_{slice_length}_threshold_{threshold} ->
 
 # kstat_    -> k_static
 # moment_   -> moments
@@ -17,10 +19,11 @@
 
 import numpy as np
 import pandas as pd
+from scipy.ndimage import mean
 from sklearn.linear_model import LinearRegression
 from scipy import stats
+#from statistics import mean
 from joblib import Parallel, delayed
-
 
 # ----------------- Aarushi -----------
 
@@ -36,7 +39,7 @@ def trend_adding_feature(array, absolute=False):
     return lr.coef_[0]
 
 
-def lta_sta_function(x, length_sta, length_lta):
+def sta_lta_function(x, length_sta, length_lta):
     x_sq = x ** 2
     sta = np.cumsum(x_sq)
 
@@ -91,24 +94,37 @@ def generate_features(x, y, seg_id):
 
     # -----------------Rishabh -----------
 
-    for interval in feature_intervals['k_static']:
-        feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
+    #for interval in feature_intervals['k_static']:
+    #    feature_collection['k_static_{interval}'] = stats.kstat(x, interval)
 
-    feature_collection['mean_abs_dev'] = stats.median_absolute_deviation(x)
+    #feature_collection['mean_abs_dev'] = stats.median_absolute_deviation(x)
 
-    for interval in feature_intervals['variable_k_stat']:
-        feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
+    #for interval in feature_intervals['variable_k_stat']:
+    #    feature_collection['variable_k_static_{interval}'] = stats.kstatvar(x, interval)
 
     # feature_collection['kurtosis'] = x.kurtosis()
 
-    for interval in feature_intervals['k_static']:
-        feature_collection['moments_{interval}'] = stats.moment(x, interval)
+    #for interval in feature_intervals['k_static']:
+    #    feature_collection['moments_{interval}'] = stats.moment(x, interval)
 
     # feature_collection['median'] = x.median()
 
     # feature_collection['skewness'] = x.skew()
 
     # ----------- End of Code ----------------
+
+    # -----------------Aarushi-------------------
+    feature_collection['sta_lta_mean_1'] = mean(sta_lta_function(x, 500, 10000))
+    feature_collection['sta_lta_mean_2'] = mean(sta_lta_function(x, 4000, 10000))
+    feature_collection['sta_lta_mean_3'] = mean(sta_lta_function(x, 5000, 100000))
+    feature_collection['sta_lta_mean_4'] = mean(sta_lta_function(x, 333, 666))
+    feature_collection['sta_lta_mean_5'] = mean(sta_lta_function(x, 3333, 6666))
+    feature_collection['sta_lta_mean_6'] = mean(sta_lta_function(x, 100, 5000))
+    feature_collection['sta_lta_mean_7'] = mean(sta_lta_function(x, 50, 1000))
+    feature_collection['sta_lta_mean_8'] = mean(sta_lta_function(x, 10000, 25000))
+
+
+    # ------------------End of Code-----------------
 
     return feature_collection
 
