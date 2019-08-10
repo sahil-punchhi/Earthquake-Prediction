@@ -5,6 +5,7 @@ import seaborn as sns
 from scipy import stats
 import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
+import statsmodels
 
 ###################################################################################################################
 # DATA EXPLORATION
@@ -37,6 +38,16 @@ def visualize_experimental_data(acoustic_data, time_to_failure_data, sample_type
     plt.plot(time_to_failure_data, color='blue')
     axis2.set_ylabel('time to failure')
     plt.legend(['time to failure'], loc=(0.01, 0.9))
+    plt.grid(True)
+    plt.show()
+
+# function to plot the cummulative distribution of data field
+# first argument: data field, second argument: title of plot, third argument: data label
+def plot_peak_data(time_to_failure_data,title, data_label):
+    plt.figure(figsize=(10, 6))
+    plt.title(title)
+    axis = sns.distplot(time_to_failure_data, hist_kws=dict(cumulative=True), kde_kws=dict(cumulative=True))
+    axis.set_xlabel(data_label)
     plt.grid(True)
     plt.show()
 
