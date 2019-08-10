@@ -44,12 +44,13 @@
 # abs_percentile_{p} -> {p}th_abs_percentile
 
 
-import os
 import numpy as np
 import pandas as pd
 import statistics
 import multiprocessing as mp
+from datetime import datetime
 from scipy.ndimage import mean
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from scipy import stats
 from tsfresh.feature_extraction import feature_calculators
@@ -76,7 +77,7 @@ def sta_lta_function(x, length_sta, length_lta):
     sta = np.cumsum(x_sq)
 
     # Convert to float
-    lta = np.require(sta, dtype=np.float)
+    lta = np.require(sta, dtype=np.float64)
 
     # Copy for LTA
     sta = lta.copy()
@@ -100,14 +101,14 @@ def sta_lta_function(x, length_sta, length_lta):
     return return_val
 
 
-# def change_rate_calculation(x):
-#     x_ = np.diff(x)
-#     change_val = (x_ / x[:-1])
-#     change_val = change_val[(change_val != 0)]
-#     change_val = change_val[np.isfinite(change_val)]
-#     return_val = np.mean(change_val)
-#
-#     return return_val
+def change_rate_calculation(x):
+    x_ = np.diff(x)
+    change_val = (x_ / x[:-1])
+    change_val = change_val[(change_val != 0)]
+    change_val = change_val[np.isfinite(change_val)]
+    return_val = np.mean(change_val)
+
+    return return_val
 
 # ----------- End of Code ----------------
 
@@ -129,24 +130,23 @@ def generate_features(x):
         feature_collection[f'discrimination_power_{interval}'] = feature_calculators.c3(x, interval)
 
     for interval in [500, 10000, 1000, 10, 50, 100]:
-
         standard_dev = pd.DataFrame(x).rolling(interval).std().dropna().values
 
         for sub_interval in [50, 60, 70, 75, 1, 40, 80, 90, 95, 99, 5, 10, 20, 25, 30]:
             feature_collection[f'{interval}_{sub_interval}_standard_percentile'] = np.percentile(standard_dev, sub_interval)
 
     for interval in feature_intervals['k_static']:
-        feature_collection['{interval}_k_static'] = stats.kstat(x, interval)
+        feature_collection[f'{interval}_k_static'] = stats.kstat(x, interval)
 
     feature_collection['median_abs_dev'] = stats.median_absolute_deviation(x)
 
     for interval in feature_intervals['variable_k_static']:
-        feature_collection['{interval}_variable_k_static'] = stats.kstatvar(x, interval)
+        feature_collection[f'{interval}_variable_k_static'] = stats.kstatvar(x, interval)
 
     feature_collection['kurtosis'] = stats.kurtosis(x)
 
     for interval in feature_intervals['k_static']:
-        feature_collection['{interval}_moments'] = stats.moment(x, interval)
+        feature_collection[f'{interval}_moments'] = stats.moment(x, interval)
 
     feature_collection['median'] = statistics.median(x)
 
@@ -162,10 +162,10 @@ def generate_features(x):
 
     # -----------------Aarushi-------------------
 
-    # geometric and harminic means
-    # x_val = x[np.nonzero(x)[0]]
-    # feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
-    # feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
+    # geometric and harmonic means
+    x_val = x[np.nonzero(x)[0]]
+    feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
+    feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
 
     # basic stats
     feature_collection['mean'] = mean(x)
@@ -204,24 +204,24 @@ def generate_features(x):
     feature_collection['count_big'] = len(x[np.abs(x) > 500])
     feature_collection['sum'] = x.sum()
 
-    # feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
+    feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
 
     # calc_change_rate on slices of data
-    # for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
-    #     if movement_direction == 'last':
-    #         x_sliced = x[-slice:]
-    #         feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-    #     elif movement_direction == 'first':
-    #         x_sliced = x[:slice]
-    #         feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-    #         # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
-    #
-    # for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
-    #     if direction == 'first':
-    #         feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
-    #         # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
-    #     elif direction == 'last':
-    #         feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
+    for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
+        if movement_direction == 'last':
+            x_sliced = x[-slice:]
+            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+        elif movement_direction == 'first':
+            x_sliced = x[:slice]
+            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+            # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+
+    for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
+        if direction == 'first':
+            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
+            # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+        elif direction == 'last':
+            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
 
     feature_collection['linear_trend'] = trend_adding_feature(x)
     feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute=True)
@@ -232,22 +232,23 @@ def generate_features(x):
         feature_collection[f'count_{slice}_less_than_threshold_{threshold_limit}'] = (x_sliced < threshold_limit).sum()
 
     # aggregations on various slices of data
-    # for type_of_aggregation, movement_direction, slice in product(['std', 'mean', 'max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
-    #     if movement_direction == 'last':
-    #         feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)
-    #     elif movement_direction == 'first':
-    #         feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)
+    for type_of_aggregation, movement_direction, slice in product(['std', 'mean', 'max', 'min'], ['last', 'first'], [50000, 10000, 1000]):
+        if movement_direction == 'last':
+            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[-slice:]).agg(type_of_aggregation)[0]
+        elif movement_direction == 'first':
+            feature_collection[f'from_{movement_direction}_slice_{slice}_typeOfAggregation{type_of_aggregation}'] = pd.DataFrame(x[:slice]).agg(type_of_aggregation)[0]
 
     # ------------------End of Code-----------------
 
     return feature_collection
+
 
 # ----------------- Amritesh ---------------
 
 
 def create_feature_dict(x, y=None):
     dft = np.fft.fft(pd.Series(x))
-    feature_collection = generate_features(x)
+    feature_collection = generate_features(pd.Series(x))
 
     for key, val in generate_features(pd.Series(np.real(dft))).items():
         feature_collection[f'fft_real_{key}'] = val
@@ -263,8 +264,8 @@ def create_feature_dict(x, y=None):
 
 def get_train_segments(file):
     dtypes = {
-        'acoustic_data': np.int16,
-        'time_to_failure': np.float32
+        'acoustic_data': np.float64,
+        'time_to_failure': np.float64
     }
 
     for i in pd.read_csv(file, dtype=dtypes, iterator=True, chunksize=150000):
@@ -273,7 +274,7 @@ def get_train_segments(file):
 
 def get_test_segments(file):
     dtypes = {
-        'acoustic_data': np.int16
+        'acoustic_data': np.float64
     }
 
     for i in file:
@@ -284,17 +285,29 @@ def get_test_segments(file):
 def get_train_data(file, cores):
     features = Parallel(n_jobs=cores, backend='threading')(delayed(create_feature_dict)(x, y) for x, y in get_train_segments(file))
 
-    return pd.DataFrame([f[0] for f in features]), pd.DataFrame([f[1] for f in features])
+    return pd.DataFrame([f[0] for f in features], dtype=np.float64), pd.Series([f[1] for f in features], dtype=np.float64)
 
 
 def get_test_data(file, cores):
     features = Parallel(n_jobs=cores, backend='threading')(delayed(create_feature_dict)(x) for x in get_test_segments(file))
 
-    return pd.DataFrame([f for f in features])
+    return pd.DataFrame([f for f in features], dtype=np.float64)
+
+
+def scale_data(xtrain, xtest):
+    sc = StandardScaler()
+    sc.fit(xtrain)
+    scaled_xtrain = pd.DataFrame(sc.transform(xtrain), columns=xtrain.columns)
+    scaled_xtest = pd.DataFrame(sc.transform(xtest), columns=xtest.columns)
+
+    return scaled_xtrain, scaled_xtest
 
 
 def preprocessing(path):
-    num_cores = mp.cpu_count()
+    ti = datetime.now()
+
+    # num_cores = mp.cpu_count()
+    num_cores = 20
 
     train_file = path + 'train.csv'
     xtrain, ytrain = get_train_data(train_file, num_cores)
@@ -304,12 +317,21 @@ def preprocessing(path):
     xtest = get_test_data(test_files, num_cores)
     xtest.to_csv(path + 'test_df.csv', index=False)
 
-    return xtrain, ytrain, xtest
+    scaled_xtrain, scaled_xtest = scale_data(xtrain, xtest)
 
-# -------------- END OF CODE ---------------
+    means_dict = {}
+    for i in xtrain.columns:
+        if xtrain[i].isnull().any():
+            mean_value = xtrain.loc[xtrain[i] != -np.inf, i].mean()
+            xtrain.loc[xtrain[i] == -np.inf, i] = mean_value
+            xtrain[i] = xtrain[i].fillna(mean_value)
+            means_dict[i] = mean_value
 
+    for i in xtest.columns:
+        if xtest[i].isnull().any():
+            xtest.loc[xtest[i] == -np.inf, i] = means_dict[i]
+            xtest[i] = xtest[i].fillna(means_dict[i])
 
-# if __name__ == '__main__':
-#     file_path = os.getcwd() + '/data_files/'
-#
-#     X_train, y_train, X_test = preprocessing(file_path)
+    print(np.abs(scaled_xtrain.corrwith(ytrain)).sort_values(ascending=False))
+
+    return scaled_xtrain, ytrain, scaled_xtest, ti
