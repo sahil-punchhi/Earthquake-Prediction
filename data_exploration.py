@@ -1,8 +1,3 @@
-import gc
-import os
-import time
-import logging
-import datetime
 import warnings
 import numpy as np
 import pandas as pd
@@ -15,6 +10,7 @@ import statsmodels
 ###################################################################################################################
 # DATA EXPLORATION
 ##################################################################
+
 
 # function to plot the single data field
 # first argument: data field1, second argument: title of plot, third argument: data label
@@ -55,7 +51,19 @@ def plot_peak_data(time_to_failure_data,title, data_label):
     plt.grid(True)
     plt.show()
 
-# function to explore data and do analysis 
+
+# function to plot the cummulative distribution of data field
+# first argument: data field, second argument: title of plot, third argument: data label
+def plot_peak_data(time_to_failure_data,title, data_label):
+    plt.figure(figsize=(10, 6))
+    plt.title(title)
+    axis = sns.distplot(time_to_failure_data, hist_kws=dict(cumulative=True), kde_kws=dict(cumulative=True))
+    axis.set_xlabel(data_label)
+    plt.grid(True)
+    plt.show()
+
+
+# function to explore data and do analysis
 def data_exploration(train_df):
     # no of data points in train data
     number_of_rows_train = train_df.shape[0]
