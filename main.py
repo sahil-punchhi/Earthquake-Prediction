@@ -4,7 +4,7 @@ import pandas as pd
 import warnings
 from datetime import datetime
 from feature_generation import preprocessing
-from prediction_xgb import predict
+from prediction_cbr import predict
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
