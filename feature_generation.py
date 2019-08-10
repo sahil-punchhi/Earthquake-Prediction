@@ -273,8 +273,4 @@ def preprocessing(path):
 
     xtrain, xtest = scale_data(fill_missing_vals((xtrain, xtest)))
 
-    # print("Correlation of features with target")
-    # print(np.abs(xtrain.corrwith(ytrain)).sort_values(ascending=False))
-    # print()
-
     return xtrain, ytrain, xtest, ti

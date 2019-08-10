@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 def predict(xtrain, ytrain, xtest):
-    oof = np.array([0.0] * xtrain.shape[0])
+    out_of_fold = np.array([0.0] * xtrain.shape[0])
     predicted_val = np.array([0.0] * xtest.shape[0])
     scores = []
 
@@ -16,7 +16,7 @@ def predict(xtrain, ytrain, xtest):
         xtrainkf, xtestkf, ytrainkf, ytestkf = xtrain.iloc[train_group], xtrain.iloc[test_group], ytrain.iloc[train_group], ytrain.iloc[test_group]
 
         params = {
-            'num_leaves': 128,
+            'num_leaves': 127,
             'min_data_in_leaf': 79,
             'objective': 'gamma',
             'max_depth': -1,
@@ -32,17 +32,17 @@ def predict(xtrain, ytrain, xtest):
             'feature_fraction': 0.2
         }
 
-        # feature_model = CatBoostRegressor(iterations=20000, eval_metric='MAE', **params)
-        feature_model = CatBoostRegressor(iterations=20, eval_metric='MAE')
+        # feature_model = CatBoostRegressor(iterations=2000, eval_metric='MAE', **params)
+        feature_model = CatBoostRegressor(iterations=2000, eval_metric='MAE')
         feature_model.fit(xtrainkf, ytrainkf, eval_set=(xtestkf, ytestkf), cat_features=[], use_best_model=True, verbose=False)
 
         ykf_predicted = feature_model.predict(xtestkf)
         predicted_val += feature_model.predict(xtest)
 
-        oof[test_group] = ykf_predicted.reshape(-1, )
+        out_of_fold[test_group] = ykf_predicted.reshape(-1, )
         scores.append(mean_absolute_error(ytestkf, ykf_predicted))
 
     predicted_val /= 5
     print(f'CV mean score: {np.mean(scores):.4f}, std: {np.std(scores):1.4f}.')
 
-    return oof, predicted_val
+    return predicted_val, out_of_fold

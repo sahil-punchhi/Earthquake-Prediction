@@ -4,7 +4,8 @@ import pandas as pd
 import warnings
 from datetime import datetime
 from feature_generation import preprocessing
-from prediction_cbr import predict
+from prediction_xgb import predict
+# from data_exploration import data_exploration
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -13,11 +14,13 @@ if __name__ == '__main__':
     file_path = os.getcwd() + '/data_files/'
 
     xtrain, ytrain, xtest, ti = preprocessing(file_path)
-    oof, predicted_val = predict(xtrain, ytrain, xtest)
+    predicted_val, out_of_fold = predict(xtrain, ytrain, xtest)
+
+    # data_exploration(pd.read_csv(file_path + 'train.csv', index=False))
 
     # plt.figure(figsize=(18, 8))
     # plt.plot(ytrain, color='g', label='y_train')
-    # plt.plot(oof, color='b', label='xgb')
+    # plt.plot(out_of_fold, color='b', label='xgb')
     # plt.legend(loc=(1, 0.5))
     # plt.title('xgb')
     # plt.show()
