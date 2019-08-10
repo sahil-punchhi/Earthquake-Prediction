@@ -163,7 +163,7 @@ def generate_features(x):
     # -----------------Aarushi-------------------
 
     # geometric and harmonic means
-    x_val = x[np.nonzero(x)[0]]
+    x_val = x[x.to_numpy().nonzero()[0]]
     feature_collection['geometric_mean'] = stats.gmean(np.abs(x_val))
     feature_collection['harmonic_mean'] = stats.hmean(np.abs(x_val))
 
@@ -317,7 +317,7 @@ def preprocessing(path):
     xtest = get_test_data(test_files, num_cores)
     xtest.to_csv(path + 'test_df.csv', index=False)
 
-    scaled_xtrain, scaled_xtest = scale_data(xtrain, xtest)
+    xtrain, xtest = scale_data(xtrain, xtest)
 
     means_dict = {}
     for i in xtrain.columns:
@@ -332,6 +332,6 @@ def preprocessing(path):
             xtest.loc[xtest[i] == -np.inf, i] = means_dict[i]
             xtest[i] = xtest[i].fillna(means_dict[i])
 
-    print(np.abs(scaled_xtrain.corrwith(ytrain)).sort_values(ascending=False))
+    # print(np.abs(xtrain.corrwith(ytrain)).sort_values(ascending=False))
 
-    return scaled_xtrain, ytrain, scaled_xtest, ti
+    return xtrain, ytrain, xtest, ti
