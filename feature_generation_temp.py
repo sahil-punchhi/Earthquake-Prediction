@@ -207,21 +207,21 @@ def generate_features(x):
     feature_collection['valid_mean_change_rate'] = change_rate_calculation(x)
 
     # calc_change_rate on slices of data
-    for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
-        if movement_direction == 'last':
-            x_sliced = x[-slice:]
-            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-        elif movement_direction == 'first':
-            x_sliced = x[:slice]
-            feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
-            # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
+    #for slice, movement_direction in product([50000, 1000, 1000], ['last', 'first']):
+    #    if movement_direction == 'last':
+    #        x_sliced = x[-slice:]
+    #        feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+    #    elif movement_direction == 'first':
+    #        x_sliced = x[:slice]
+    #        feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'] = change_rate_calculation(x_sliced)
+    #        # print("A ", feature_collection[f'from_{movement_direction}_slice_{slice}_valid_mean_change_rate'])
 
-    for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
-        if direction == 'first':
-            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
-            # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
-        elif direction == 'last':
-            feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
+    #for slice_length, direction in product([50000, 1000, 1000], ['last', 'first']):
+    #    if direction == 'first':
+    #        feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[:slice_length])
+    #       # print("B ", feature_collection[f'mean_change_rate_{direction}_{slice_length}'])
+    #    elif direction == 'last':
+    #        feature_collection[f'mean_change_rate_{direction}_{slice_length}'] = change_rate_calculation(x[-slice_length:])
 
     feature_collection['linear_trend'] = trend_adding_feature(x)
     feature_collection['absolute_linear_trend'] = trend_adding_feature(x, absolute=True)
