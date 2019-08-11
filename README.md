@@ -19,14 +19,6 @@ Which will run the code in the 'main.py' file , applies the machine learning mod
 ```__name__=__main__:```
  
  section of the main.py file.
- 
-## Data Exploration 
-
-To run the data exploration file you can type in the following command
-
-```python3 data_exploration.py``` 
-
-In this file we have generated various plots using python plot module to analyse various properties of train data.
 
 
 ## Training Model Files
