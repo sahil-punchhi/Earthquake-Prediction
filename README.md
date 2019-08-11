@@ -37,15 +37,10 @@ Our Implemention basically compares the accuracy of prediction of time to failur
 ``` prediction_lgb.py  -> lightgbm ```
 
 
-## Feature generation Files
+## Result Files
 
 ``` feature_generation.py ```
 
-On running the code for feature_generation , two files are generated 'train_df.csv' stores training features and 'test_df.csv' which stores the test data features , which later on is used by prediction files mentioned above.
-
-
-
-
-
-
-
+For each model, after the code runs to completion, four files are generated in the folder:
+``` data_files/result/ ```
+namely, 'train_features.csv' which stores training data features, 'test_features.csv' which stores test data features, 'time_to_failure.csv' which stores actual time_to_failure values, and 'sample_submission.csv' which stores predicted time_to_failure values.
