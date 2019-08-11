@@ -39,8 +39,6 @@ Our Implemention basically compares the accuracy of prediction of time to failur
 
 ## Result Files
 
-``` feature_generation.py ```
-
 For each model, after the code runs to completion, four files are generated in the folder:
 ``` data_files/result/ ```
-namely, 'train_features.csv' which stores training data features, 'test_features.csv' which stores test data features, 'time_to_failure.csv' which stores actual time_to_failure values, and 'sample_submission.csv' which stores predicted time_to_failure values.
+namely, ``` train_features.csv ``` which stores training data features, ``` test_features.csv ``` which stores test data features, ``` time_to_failure.csv ``` which stores actual time_to_failure values, and ``` sample_submission.csv ``` which stores predicted time_to_failure values.
