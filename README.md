@@ -4,9 +4,10 @@ To predict the time that an earthquake will occur in a laboratory test using Sci
 ## Training Model Files
 Our Implemention basically compares the accuracy of prediction of time to failure using different machine learning models , namely xgBoost, lightgbm and catBooster , which is implemented in the following files:
 
-''' prediction_cbr.py ''' -> CatBoost
-''' prediction_xgb.py ''' -> xgBoost
-''' prediction_lgb.py ''' -> lightgbm
+``` prediction_cbr.py  -> CatBoost
+ prediction_xgb.py  -> xgBoost
+ prediction_lgb.py  -> lightgbm ```
+
 
 ## Feature generation Files
 
