@@ -1,0 +1,38 @@
+[0]	train_data-mae:5.84211	valid_data-mae:5.97926
+Multiple eval metrics have been passed: 'valid_data-mae' will be used for early stopping.
+
+Will train until valid_data-mae hasn't improved in 200 rounds.
+[500]	train_data-mae:0.000896	valid_data-mae:1.57109
+Stopping. Best iteration:
+[395]	train_data-mae:0.003435	valid_data-mae:1.57103
+
+[0]	train_data-mae:5.72614	valid_data-mae:6.45207
+Multiple eval metrics have been passed: 'valid_data-mae' will be used for early stopping.
+
+Will train until valid_data-mae hasn't improved in 200 rounds.
+Stopping. Best iteration:
+[196]	train_data-mae:0.048986	valid_data-mae:1.52102
+
+[0]	train_data-mae:5.94338	valid_data-mae:5.5645
+Multiple eval metrics have been passed: 'valid_data-mae' will be used for early stopping.
+
+Will train until valid_data-mae hasn't improved in 200 rounds.
+Stopping. Best iteration:
+[192]	train_data-mae:0.048152	valid_data-mae:1.74623
+
+[0]	train_data-mae:5.95106	valid_data-mae:5.52432
+Multiple eval metrics have been passed: 'valid_data-mae' will be used for early stopping.
+
+Will train until valid_data-mae hasn't improved in 200 rounds.
+Stopping. Best iteration:
+[229]	train_data-mae:0.028504	valid_data-mae:1.49066
+
+[0]	train_data-mae:5.86275	valid_data-mae:5.90178
+Multiple eval metrics have been passed: 'valid_data-mae' will be used for early stopping.
+
+Will train until valid_data-mae hasn't improved in 200 rounds.
+Stopping. Best iteration:
+[172]	train_data-mae:0.069256	valid_data-mae:1.72626
+
+CV mean score: 1.6110, std: 0.1056.
+
