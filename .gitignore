@@ -2,7 +2,6 @@
 .idea
 test_df.csv
 train_df.csv
-__pycache__
 data_files/
 
 
