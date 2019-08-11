@@ -1,6 +1,12 @@
 # Earthquake-Prediction
 To predict the time that an earthquake will occur in a laboratory test using Scikit-Learn (Pedregosa et al. (2011), XGBoost,CatBoost and LightGBM libraries for machine learning and support. The laboratory test applies shear forces to a sample of earth and rock containing a fault line. If the physics are ultimately shown to scale from the laboratory to the field, researchers will have the potential to improve earthquake hazard assessments that could save lives and billions of dollars in infrastructure. The metric used is Mean Absolute Error (MAE) and thus a lower value is better with zero representing a perfect fit.
 
+
+## To setup the project
+
+In the project directory, create folder ``` data_files/ ``` and store the files ``` train.csv ```, ``` sample_submission.csv ```, and ``` test/ ``` folder containing segment_ids. These files can be downloaded from the link ``` https://www.kaggle.com/c/LANL-Earthquake-Prediction/data ```. Also create ``` result/ ``` folder in this directory.
+
+
 ## To install the dependencies:
 
 Before running the actual code , we need to install all libraries used in the module using the following command:
