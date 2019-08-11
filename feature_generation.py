@@ -26,35 +26,6 @@ def trend_adding_feature(array, absolute=False):
     return lr.coef_[0]
 
 
-def sta_lta_function(x, length_sta, length_lta):
-    x_sq = x ** 2
-    sta = np.cumsum(x_sq)
-
-    # Convert to float
-    lta = np.require(sta, dtype=np.float64)
-
-    # Copy for LTA
-    sta = lta.copy()
-
-    # Compute the STA and the LTA
-    lta[length_lta:] = lta[length_lta:] - lta[:-length_lta]
-    sta[length_sta:] = sta[length_sta:] - sta[:-length_sta]
-    sta /= length_sta
-    lta /= length_lta
-
-    # Pad zeros
-    for i in range(0, length_lta - 1):
-        sta[i] = 0
-
-    # Avoid division by zero by setting zero values to tiny float
-    tiny_val = np.finfo(0.0).tiny
-    index_new = lta < tiny_val
-    lta[index_new] = tiny_val
-    return_val = sta / lta
-
-    return return_val
-
-
 def change_rate_calculation(x):
     x_ = np.diff(x)
     change_val = (x_ / x[:-1])
@@ -124,15 +95,6 @@ def generate_features(x):
     feature_collection['abs_mean'] = np.mean(np.abs(x))
     feature_collection['abs_std'] = np.abs(x).std()
 
-    feature_collection['sta_lta_mean_1'] = mean(sta_lta_function(x, 500, 10000))
-    feature_collection['sta_lta_mean_2'] = mean(sta_lta_function(x, 4000, 10000))
-    feature_collection['sta_lta_mean_3'] = mean(sta_lta_function(x, 5000, 100000))
-    feature_collection['sta_lta_mean_4'] = mean(sta_lta_function(x, 333, 666))
-    feature_collection['sta_lta_mean_5'] = mean(sta_lta_function(x, 3333, 6666))
-    feature_collection['sta_lta_mean_6'] = mean(sta_lta_function(x, 100, 5000))
-    feature_collection['sta_lta_mean_7'] = mean(sta_lta_function(x, 50, 1000))
-    feature_collection['sta_lta_mean_8'] = mean(sta_lta_function(x, 10000, 25000))
-
     percentile_divisions = [1, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 99]
 
     for p in percentile_divisions:
@@ -184,13 +146,17 @@ def generate_features(x):
     return feature_collection
 
 
+# function to get generated features for X, and real and imaginary parts of FFT of X
 def create_feature_dict(x, y=None):
+    # compute fast fourier transform and generate features for x
     dft = np.fft.fft(pd.Series(x))
     feature_collection = generate_features(pd.Series(x))
 
+    # generate features for real part of FFT of x
     for key, val in generate_features(pd.Series(np.real(dft))).items():
         feature_collection[f'fft_real_{key}'] = val
 
+    # generate features for imaginary part of FFT of x
     for key, val in generate_features(pd.Series(np.imag(dft))).items():
         feature_collection[f'fft_imag_{key}'] = val
 
@@ -200,6 +166,7 @@ def create_feature_dict(x, y=None):
     return feature_collection
 
 
+# function to read training data file in segments of 150000
 def get_train_segments(file):
     dtypes = {
         'acoustic_data': np.float64,
@@ -210,6 +177,7 @@ def get_train_segments(file):
         yield i['acoustic_data'].to_numpy(), i['time_to_failure'].to_numpy()[-1]
 
 
+# function to read test data files
 def get_test_segments(file):
     dtypes = {
         'acoustic_data': np.float64
@@ -220,39 +188,49 @@ def get_test_segments(file):
         yield df['acoustic_data'].to_numpy()
 
 
+# function to get feature training data
 def get_train_data(file, cores):
+    # parallelizing computation of segments on multiple threads
     features = Parallel(n_jobs=cores, backend='threading')(delayed(create_feature_dict)(x, y) for x, y in get_train_segments(file))
 
     return pd.DataFrame([f[0] for f in features], dtype=np.float64), pd.Series([f[1] for f in features], dtype=np.float64)
 
 
+# function to get feature test data
 def get_test_data(file, cores):
+    # parallelizing computation of segments on multiple threads
     features = Parallel(n_jobs=cores, backend='threading')(delayed(create_feature_dict)(x) for x in get_test_segments(file))
 
     return pd.DataFrame([f for f in features], dtype=np.float64)
 
 
+# function to scale data
 def scale_data(data):
     sc = StandardScaler()
 
+    # scale training data
     sc.fit(data[0])
     scaled_xtrain = pd.DataFrame(sc.transform(data[0]), columns=data[0].columns)
 
+    # scale test data
     sc.fit(data[1])
     scaled_xtest = pd.DataFrame(sc.transform(data[1]), columns=data[1].columns)
 
     return scaled_xtrain, scaled_xtest
 
 
+# function to fill missing and infinity values in data
 def fill_missing_vals(data):
     means_dict = dict()
 
+    # fill missing and infinity values in training data
     for i in data[0].columns:
         if data[0][i].isnull().any():
             means_dict[i] = data[0].loc[data[0][i] != -np.inf, i].mean()
             data[0][i] = data[0][i].fillna(means_dict[i])
             data[0].loc[data[0][i] == -np.inf, i] = means_dict[i]
 
+    # fill missing and infinity values in test data
     for i in data[1].columns:
         if data[1][i].isnull().any():
             data[1][i] = data[1][i].fillna(means_dict[i])
@@ -261,16 +239,20 @@ def fill_missing_vals(data):
     return data[0], data[1]
 
 
+# function to pre-process (generate features) the data
 def preprocessing(path):
     ti = datetime.now()
     num_cores = 20
 
+    # get feature training and target data
     train_file = path + 'train.csv'
     xtrain, ytrain = get_train_data(train_file, num_cores)
 
+    # get feature test data
     test_files = [path + 'test/' + i + '.csv' for i in (pd.read_csv(path + 'sample_submission.csv'))['seg_id'].tolist()]
     xtest = get_test_data(test_files, num_cores)
 
+    # scale data and fill missing values
     xtrain, xtest = scale_data(fill_missing_vals((xtrain, xtest)))
 
     return xtrain, ytrain, xtest, ti
