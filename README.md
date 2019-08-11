@@ -1,5 +1,5 @@
 # Earthquake-Prediction
-To predict the time that an earthquake will occur in a laboratory test using Scikit-Learn (Pedregosa et al. (2011), XGBoost (Chen &amp; Guestrin, 2016) and LightGBM (Ke, et al., 2017) libraries for machine learning and support. The laboratory test applies shear forces to a sample of earth and rock containing a fault line. If the physics are ultimately shown to scale from the laboratory to the field, researchers will have the potential to improve earthquake hazard assessments that could save lives and billions of dollars in infrastructure. The metric used is Mean Absolute Error (MAE) and thus a lower value is better with zero representing a perfect fit.
+To predict the time that an earthquake will occur in a laboratory test using Scikit-Learn (Pedregosa et al. (2011), XGBoost,CatBoost and LightGBM libraries for machine learning and support. The laboratory test applies shear forces to a sample of earth and rock containing a fault line. If the physics are ultimately shown to scale from the laboratory to the field, researchers will have the potential to improve earthquake hazard assessments that could save lives and billions of dollars in infrastructure. The metric used is Mean Absolute Error (MAE) and thus a lower value is better with zero representing a perfect fit.
 
 ## To install the dependencies:
 
@@ -19,6 +19,14 @@ Which will run the code in the 'main.py' file , applies the machine learning mod
 ```__name__=__main__:```
  
  section of the main.py file.
+ 
+## Data Exploration 
+
+To run the data exploration file you can type in the following command
+
+```python3 data_exploration.py``` 
+
+In this file we have generated various plots using python plot module to analyse various properties of train data.
 
 
 ## Training Model Files
@@ -34,6 +42,9 @@ Our Implemention basically compares the accuracy of prediction of time to failur
 ``` feature_generation.py ```
 
 On running the code for feature_generation , two files are generated 'train_df.csv' stores training features and 'test_df.csv' which stores the test data features , which later on is used by prediction files mentioned above.
+
+
+
 
 
 
